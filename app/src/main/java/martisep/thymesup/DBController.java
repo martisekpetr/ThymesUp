@@ -1,4 +1,4 @@
-package martisep.timesup;
+package martisep.thymesup;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

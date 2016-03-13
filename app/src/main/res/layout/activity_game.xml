@@ -5,7 +5,7 @@ android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizo
 android:paddingRight="@dimen/activity_horizontal_margin"
 android:paddingTop="@dimen/activity_vertical_margin"
 android:paddingBottom="@dimen/activity_vertical_margin"
-tools:context="martisep.timesup.GameActivity"
+tools:context="martisep.thymesup.GameActivity"
 android:orientation="vertical"
     android:gravity="right">
 

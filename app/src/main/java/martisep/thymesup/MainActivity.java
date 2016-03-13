@@ -1,4 +1,4 @@
-package martisep.timesup;
+package martisep.thymesup;
 
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
@@ -207,7 +207,10 @@ public class MainActivity extends ActionBarActivity {
 
                 }
             } finally {
-                cursor.close();
+                if(cursor != null){
+                    cursor.close();
+                }
+
             }
         }
         if (result == null) {

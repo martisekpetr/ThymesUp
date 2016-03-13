@@ -1,4 +1,4 @@
-package martisep.timesup;
+package martisep.thymesup;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -25,13 +25,13 @@ import java.util.Collections;
 
 public class GameActivity extends Activity {
     // string constants
-    public final static String TEAM_COUNT_MESSAGE = "martisep.timesup.TEAM_COUNT_MESSAGE";
-    public final static String TOPICS_MESSAGE = "martisep.timesup.TOPICS_MESSAGE";
-    public final static String SUMMARY_START = "martisep.timesup.SUMMARY_START";
-    public final static String SUMMARY_COUNT = "martisep.timesup.SUMMARY_COUNT";
-    public final static String SUMMARY= "martisep.timesup.SUMMARY";
-    public final static String SUMMARY_SCORE= "martisep.timesup.SUMMARY_SCORE";
-    public static final String SUMMARY_TEAM = "martisep.timesup.SUMMARY_TEAM";
+    public final static String TEAM_COUNT_MESSAGE = "martisep.thymesup.TEAM_COUNT_MESSAGE";
+    public final static String TOPICS_MESSAGE = "martisep.thymesup.TOPICS_MESSAGE";
+    public final static String SUMMARY_START = "martisep.thymesup.SUMMARY_START";
+    public final static String SUMMARY_COUNT = "martisep.thymesup.SUMMARY_COUNT";
+    public final static String SUMMARY= "martisep.thymesup.SUMMARY";
+    public final static String SUMMARY_SCORE= "martisep.thymesup.SUMMARY_SCORE";
+    public static final String SUMMARY_TEAM = "martisep.thymesup.SUMMARY_TEAM";
     public static final String ROUND1 = "Popis";
     public static final String ROUND2 = "Jedno slovo";
     public static final String ROUND3 = "Šarády";
@@ -248,7 +248,7 @@ public class GameActivity extends Activity {
         //displayscore
         StringBuilder stringBuilder = new StringBuilder();
         for(int i = 0; i < team_count; i++){
-            stringBuilder.append("Tým " + i + ": " + score[i] + "\n");
+            stringBuilder.append("Tým ").append(i).append(": ").append(score[i]).append("\n");
         }
         new AlertDialog.Builder(this)
                 .setTitle("Konec " + Integer.toString(round)+ ". kola")
