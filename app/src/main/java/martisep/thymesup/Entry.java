@@ -4,14 +4,16 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Entry implements Parcelable{
+    public enum EntryState {GUESSED, BURNT, NONE};
+
     private String name;
     private String keywords;
-    private boolean guessed;
+    private EntryState state;
 
     public Entry(String name, String keywords){
         this.name = name;
         this.keywords = keywords;
-        this.guessed = false;
+        this.state = EntryState.NONE;
     }
 
     public String getName(){
@@ -22,12 +24,14 @@ public class Entry implements Parcelable{
         return keywords;
     }
 
-    public boolean isGuessed() {
-        return guessed;
+    public EntryState getState(){
+        return state;
     }
-
-    public void setGuessed(boolean guessed) {
-        this.guessed = guessed;
+    public void setState(EntryState state){
+        this.state = state;
+    }
+    public boolean isGuessed(){
+        return state == EntryState.GUESSED;
     }
 
     public String toString(){
@@ -36,7 +40,7 @@ public class Entry implements Parcelable{
 
     public Entry clone(){
         Entry p = new Entry(this.name, this.keywords);
-        p.guessed = this.guessed;
+        p.state = this.state;
         return p;
     }
 
@@ -44,13 +48,13 @@ public class Entry implements Parcelable{
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(name);
         dest.writeString(keywords);
-        dest.writeByte((byte) (guessed ? 0x01 : 0x00));
+        dest.writeSerializable(state);
     }
 
     protected Entry(Parcel in) {
         name = in.readString();
         keywords = in.readString();
-        guessed = in.readByte() != 0x00;
+        state = (EntryState) in.readSerializable();
     }
 
     @Override

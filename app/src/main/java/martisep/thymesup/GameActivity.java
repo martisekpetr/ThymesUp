@@ -36,6 +36,7 @@ public class GameActivity extends Activity {
     public static final String ROUND2 = "Jedno slovo";
     public static final String ROUND3 = "Šarády";
     private static final int SUMMARY_REQUEST_CODE = 8;
+    public static final String ROUND = "martisep.thymesup.ROUND";
 
     // game variables
     private int team_count;
@@ -43,7 +44,7 @@ public class GameActivity extends Activity {
     private int current_index;
     private int turn_start_index;
     private int turn_counter;
-    private int guessed_count;
+    private int remaining_words;
     private int[] score;
     private int round;
     private ArrayList<Entry> words;
@@ -56,6 +57,9 @@ public class GameActivity extends Activity {
     ProgressBar mProgressBar;
     CountDownTimer mCountDownTimer;
     TextView mCountDown;
+    Button btn_correct;
+    Button btn_skip;
+    Button btn_burn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,29 +75,50 @@ public class GameActivity extends Activity {
         }
 
         loadWordsFromDB(topics, 15 * team_count);
+        initUIElements();
+        //start game
+        newGame();
+    }
 
+    private void initUIElements(){
         // init ui elements
         name_text = (TextView)findViewById(R.id.guessedWord);
         keywords_text = (TextView)findViewById(R.id.guessedKeywords);
 
-        Button btn_correct = (Button) findViewById(R.id.button_correct);
-        Button btn_wrong = (Button) findViewById(R.id.button_wrong);
+        btn_correct = (Button) findViewById(R.id.button_correct);
+        btn_skip = (Button) findViewById(R.id.button_skip);
+        btn_burn = (Button) findViewById(R.id.button_burn);
+
         btn_correct.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                round_words.get(current_index).setGuessed(true);
-                guessed_count++;
-                if (guessed_count == round_words.size()){
+                round_words.get(current_index).setState(Entry.EntryState.GUESSED);
+                remaining_words--;
+                if (remaining_words == 0){
+                    turn_counter++;
                     endTurn(); // not yet endRound! some words may be corrected in summary
                 } else {
                     nextWord();
                 }
             }
         });
-        btn_wrong.setOnClickListener(new View.OnClickListener() {
+        btn_skip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 nextWord();
+            }
+        });
+        btn_burn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                round_words.get(current_index).setState(Entry.EntryState.BURNT);
+                remaining_words--;
+                if (remaining_words == 0){
+                    turn_counter++;
+                    endTurn(); // not yet endRound! some words may be corrected in summary
+                } else {
+                    nextWord();
+                }
             }
         });
 
@@ -116,8 +141,6 @@ public class GameActivity extends Activity {
             }
         };
 
-        //start game
-        newGame();
     }
 
     private void loadWordsFromDB(String[] topics, int word_limit) {
@@ -159,10 +182,20 @@ public class GameActivity extends Activity {
 
     private void newRound(){
         round_words = new ArrayList<>();
-        for(Entry p : words)
+        for(Entry p : words){
             round_words.add(p.clone());
+        }
         Collections.shuffle(round_words);
-        guessed_count = 0;
+
+        if(round == 1){
+            btn_burn.setVisibility(View.VISIBLE);
+            btn_skip.setVisibility(View.GONE);
+        } else{
+            btn_burn.setVisibility(View.GONE);
+            btn_skip.setVisibility(View.VISIBLE);
+        }
+
+        remaining_words = round_words.size();
         current_index = -1;
         turn_start_index = 0;
         nextWord();
@@ -172,7 +205,7 @@ public class GameActivity extends Activity {
     private void newTurn(){
         current_team = (current_team + 1) % team_count;
         turn_start_index = current_index;
-        turn_counter = 1;
+        turn_counter = 0;
 
         //reset countdown
         mProgressBar.setProgress(30);
@@ -202,7 +235,7 @@ public class GameActivity extends Activity {
         // get next "not yet guessed" word (if exists)
         do{
             current_index = (current_index + 1) % round_words.size();
-        } while(round_words.get(current_index).isGuessed());
+        } while(round_words.get(current_index).getState() != Entry.EntryState.NONE);
 
         turn_counter++; // count how many words the player cycled through
 
@@ -212,6 +245,7 @@ public class GameActivity extends Activity {
 
     private void endTurn(){
         mCountDownTimer.cancel(); //should already be stopped, except in the end of the round
+        /*
         MediaPlayer mPlayer = MediaPlayer.create(getApplicationContext(), R.raw.fifth_short);
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mPlayer.setVolume(1.0f, 1.0f);
@@ -221,16 +255,19 @@ public class GameActivity extends Activity {
         long[] pattern = {100,60,110,60,110,60,100, 2000};
         // The '-1' here means to vibrate once, as '-1' is out of bounds in the pattern array
         v.vibrate(pattern, -1);
+        */
 
         Intent summary_intent = new Intent(getApplicationContext(), SummaryActivity.class);
         summary_intent.putExtra(SUMMARY_START, turn_start_index);
         summary_intent.putExtra(SUMMARY_COUNT, turn_counter);
         summary_intent.putExtra(SUMMARY_SCORE, score[current_team]);
         summary_intent.putExtra(SUMMARY_TEAM, current_team );
+        summary_intent.putExtra(ROUND, round);
 
         // copy only words which player cycled through (without repeat)
         ArrayList<Entry> used_words = new ArrayList<>();
         turn_counter = Math.min(turn_counter,round_words.size());
+
         for(int i = 0; i < turn_counter; i++){
             used_words.add(round_words.get((turn_start_index + i) % round_words.size()));
         }
@@ -267,7 +304,6 @@ public class GameActivity extends Activity {
                 }).show();
     }
 
-
     String makePlaceholders(int len) {
         if (len < 1) {
             // It will lead to an invalid query anyway ..
@@ -282,7 +318,6 @@ public class GameActivity extends Activity {
         }
     }
 
-
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if(data == null){
             return;
@@ -296,30 +331,33 @@ public class GameActivity extends Activity {
 
                     // correct guessed/not-guessed words
                     for(int i = 0; i < turn_counter; i++){
-                        round_words.get((turn_start_index + i) % round_words.size()).setGuessed(corrected_entries.get(i).isGuessed());
+                        round_words.get((turn_start_index + i) % round_words.size()).setState(corrected_entries.get(i).getState());
                     }
+
+                    // repoint current_pointer to next non-guessed, non-burnt word
                     int limit = 0;
-                    while(round_words.get(current_index).isGuessed()){
+                    while(round_words.get(current_index).getState() != Entry.EntryState.NONE){
                         current_index = (current_index + 1) % round_words.size();
                         limit++;
                         if(limit == round_words.size()){
+                            // prevent endless cycle
                             break;
                         }
                     }
 
-                    // CAREFULLY! remove guessed words (in reverse order) and correctly manage current_index
+                    // CAREFULLY! remove guessed and burnt words (in reverse order) and correctly manage current_index
                     for(int i = round_words.size()-1; i >= current_index; i--){
-                        if(round_words.get(i).isGuessed()){
+                        if(round_words.get(i).getState() != Entry.EntryState.NONE){
                             round_words.remove(i);
                         }
                     }
                     for(int i = current_index-1; i >= 0; i--){
-                        if(round_words.get(i).isGuessed()){
+                        if(round_words.get(i).getState() != Entry.EntryState.NONE){
                             round_words.remove(i);
                             current_index--;
                         }
                     }
-                    guessed_count = 0;
+                    remaining_words = round_words.size();
 
                     // all words guessed -> new round
                     if(round_words.isEmpty()){

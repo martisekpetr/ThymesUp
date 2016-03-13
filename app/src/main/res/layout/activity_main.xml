@@ -49,20 +49,23 @@
         android:layout_marginTop="10dp"
         android:text="Importovat téma"
         android:id="@+id/button_import"
-        />
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:textSize="15sp" />
 
 
 
 
     <Button
-        android:layout_width="match_parent"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
         android:textSize="20sp"
         android:layout_weight="0"
         android:text="Spustit"
         android:id="@+id/button_start"
-        />
+        android:background="#ff40a244"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp" />
 
 
 

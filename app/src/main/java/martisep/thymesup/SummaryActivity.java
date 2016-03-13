@@ -19,6 +19,7 @@ public class SummaryActivity extends Activity {
     int score_gain;
     int current_score;
     int current_team;
+    int round;
     TextView score_view;
     ArrayList<Entry> used_entries;
     ListView listView;
@@ -33,9 +34,9 @@ public class SummaryActivity extends Activity {
         current_score = intent.getIntExtra(GameActivity.SUMMARY_SCORE, 0);
         current_team = intent.getIntExtra(GameActivity.SUMMARY_TEAM, 0);
         used_entries = intent.getParcelableArrayListExtra(GameActivity.SUMMARY);
+        round = intent.getIntExtra(GameActivity.ROUND, 2);
 
         score_view = (TextView) findViewById(R.id.textView_score);
-        Log.d("", Integer.toString(used_entries.size()));
         listView = (ListView) findViewById(R.id.listViewSummary);
         ArrayAdapter<Entry> adapter = new ArrayAdapter<>(this, R.layout.list_item, used_entries);
         listView.setAdapter(adapter);
@@ -54,7 +55,15 @@ public class SummaryActivity extends Activity {
                 Log.d(null, Integer.toString(listView.getCheckedItemCount()));
                 SparseBooleanArray checked = listView.getCheckedItemPositions();
                 for (int i = 0; i < checked.size(); i++) {
-                    ((Entry) listView.getAdapter().getItem(i)).setGuessed(checked.get(i));
+                    if(checked.get(i)){
+                        ((Entry) listView.getAdapter().getItem(i)).setState(Entry.EntryState.GUESSED);
+                    } else {
+                        if(round == 1){
+                            ((Entry) listView.getAdapter().getItem(i)).setState(Entry.EntryState.BURNT);
+                        } else{
+                            ((Entry) listView.getAdapter().getItem(i)).setState(Entry.EntryState.NONE);
+                        }
+                    }
                 }
                 repaintScore();
             }

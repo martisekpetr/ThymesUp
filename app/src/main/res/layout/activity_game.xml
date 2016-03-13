@@ -83,11 +83,25 @@ android:orientation="vertical"
             android:textSize="25sp"
         android:layout_weight="1"
         android:text="Skip"
-        android:id="@+id/button_wrong"
+        android:id="@+id/button_skip"
         android:background="#ffd23d45"
             android:paddingTop="30dp"
             android:paddingBottom="30dp"
-            android:layout_marginRight="5dp" />
+            android:layout_marginRight="5dp"
+            android:visibility="gone" />
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            android:layout_weight="1"
+            android:text="Burn"
+            android:id="@+id/button_burn"
+            android:background="#ffd23d45"
+            android:paddingTop="30dp"
+            android:paddingBottom="30dp"
+            android:layout_marginRight="5dp"
+            android:visibility="visible" />
 
         <Button
         android:layout_width="0dp"
