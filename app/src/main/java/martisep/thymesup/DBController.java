@@ -12,6 +12,7 @@ public class DBController extends SQLiteOpenHelper{
     public static final String NAME_COLUMN = "Name";
     public static final String KEYWORDS_COLUMN = "Keywords";
     public static final String TOPIC_COLUMN = "Topic";
+    public static final String COUNT_COLUMN = "Count";
 
 
 
@@ -35,7 +36,9 @@ public class DBController extends SQLiteOpenHelper{
                 + TOPICS_TABLE
                 + " ( Id INTEGER PRIMARY KEY, "
                 + TOPIC_COLUMN
-                + " TEXT)");
+                + " TEXT, "
+                + COUNT_COLUMN
+                + " INTEGER)");
     }
 
     @Override
@@ -44,24 +47,4 @@ public class DBController extends SQLiteOpenHelper{
         db.execSQL("DROP TABLE IF EXISTS " + TOPICS_TABLE);
         onCreate(db);
     }
-    /* probably will not use
-    public ArrayList<HashMap<String, String>> getAllProducts() {
-        ArrayList<HashMap<String, String>> proList;
-        proList = new ArrayList<HashMap<String, String>>();
-        String selectQuery = "SELECT  * FROM proinfo";
-        SQLiteDatabase database = this.getWritableDatabase();
-        Cursor cursor = database.rawQuery(selectQuery, null);
-        if (cursor.moveToFirst()) {
-            do {
-                //Id, Company,Name,Price
-                HashMap<String, String> map = new HashMap<String, String>();
-                map.put("Id", cursor.getString(0));
-                map.put("Company", cursor.getString(1));
-                map.put("Name", cursor.getString(2));
-                map.put("Price", cursor.getString(3));
-                proList.add(map);
-            } while (cursor.moveToNext());
-        }
-        return proList;
-    } */
 }

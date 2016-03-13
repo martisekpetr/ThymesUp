@@ -16,6 +16,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckedTextView;
+import android.widget.FilterQueryProvider;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
@@ -40,16 +42,29 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //this.deleteDatabase("TimesUpDB.db");
+        this.deleteDatabase("TimesUpDB.db");
 
         // bind list of topics to db
         listView = (ListView) findViewById(R.id.listView1);
         dbController = new DBController(this);
         SQLiteDatabase db = dbController.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT rowid _id,* FROM " + DBController.TOPICS_TABLE, null);
-        String[] from = new String[]{DBController.TOPIC_COLUMN};
+        String[] from = new String[]{DBController.TOPIC_COLUMN, DBController.COUNT_COLUMN}; //TODO
         int[] to = new int[]{R.id.checkedTextView1};
         adapter = new SimpleCursorAdapter(this, R.layout.list_item, cursor, from , to ,0);
+        adapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
+            public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
+                if (view.getId() == R.id.checkedTextView1) {
+                    ((CheckedTextView)view).setText(
+                            cursor.getString(cursor.getColumnIndex(DBController.TOPIC_COLUMN))
+                            + " ("
+                            + Integer.toString(cursor.getInt(cursor.getColumnIndex(DBController.COUNT_COLUMN)))
+                            +")");
+                    return true;
+                }
+                return false;
+            }
+        });
         listView.setAdapter(adapter);
         listView.setItemsCanFocus(false);
         listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
@@ -88,8 +103,14 @@ public class MainActivity extends ActionBarActivity {
                         topics.add(c.getString(c.getColumnIndex(DBController.TOPIC_COLUMN)));
                     }
                 }
-                gameintent.putExtra(GameActivity.TOPICS_MESSAGE, topics);
-                startActivity(gameintent);
+                if(topics.isEmpty()){
+                    Toast.makeText(getBaseContext(), "Vyber nějaká témata!",
+                            Toast.LENGTH_SHORT).show();
+                } else{
+                    gameintent.putExtra(GameActivity.TOPICS_MESSAGE, topics);
+                    startActivity(gameintent);
+                }
+
             }
         });
     }
@@ -115,6 +136,7 @@ public class MainActivity extends ActionBarActivity {
                             String line;
                             db.beginTransaction();
                             Log.d(null,"begin reading file");
+                            int count = 0;
                             while ((line = buffer.readLine()) != null) {
                                 String[] str = line.split(";", 2);  // defining 2 columns with null or blank field //values acceptance
                                 //Name, Keywords
@@ -123,7 +145,7 @@ public class MainActivity extends ActionBarActivity {
                                 if(str.length > 1){
                                     keywords = str[1];
                                 }
-
+                                count++;
 
                                 contentValues.put(DBController.NAME_COLUMN, name);
                                 contentValues.put(DBController.KEYWORDS_COLUMN, keywords);
@@ -133,6 +155,7 @@ public class MainActivity extends ActionBarActivity {
                             }
                             ContentValues cv = new ContentValues();
                             cv.put(DBController.TOPIC_COLUMN, new_topic);
+                            cv.put(DBController.COUNT_COLUMN, count);
                             db.insert(DBController.TOPICS_TABLE, null, cv);
 
                             Log.d(null,"finished reading file");
