@@ -86,7 +86,7 @@ public class SummaryActivity extends Activity {
     }
 
     private void repaintScore(){
-        score_view.setText("Current score (Team "+ team_name +"): "+ (current_score + listView.getCheckedItemCount()));
+        score_view.setText("Current score ("+ team_name +"): "+ (current_score + listView.getCheckedItemCount()));
     }
 
     @Override

@@ -29,9 +29,13 @@ public class FilterActivity extends Activity {
         // extract data from Intent
         Intent intent = getIntent();
         team = intent.getIntExtra(GameActivity.SUMMARY_TEAM, 0);
+        String team_name = intent.getStringExtra(GameActivity.TEAM_NAME);
         filtered_entries = intent.getParcelableArrayListExtra(GameActivity.SUMMARY);
 
         teamNameEditText = (EditText) findViewById(R.id.editTextTeamName);
+        teamNameEditText.setText(team_name);
+        teamNameEditText.selectAll();
+
         listView = (ListView) findViewById(R.id.listViewFilter);
         ArrayAdapter<Entry> adapter = new ArrayAdapter<>(this, R.layout.list_item, filtered_entries);
         listView.setAdapter(adapter);
@@ -47,8 +51,8 @@ public class FilterActivity extends Activity {
         confirmBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(listView.getCheckedItemCount() > 6){
-                    Toast toast = Toast.makeText(getBaseContext(), "Select at most 6 entries!",
+                if(listView.getCheckedItemCount() != 6){
+                    Toast toast = Toast.makeText(getBaseContext(), "Choose 6 entries.",
                             Toast.LENGTH_SHORT);
                     toast.setGravity(Gravity.TOP| Gravity.CENTER_HORIZONTAL, 0, 0);
                     toast.show();

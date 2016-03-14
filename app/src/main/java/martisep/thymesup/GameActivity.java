@@ -34,9 +34,6 @@ public class GameActivity extends Activity {
     public final static String SUMMARY= "martisep.thymesup.SUMMARY";
     public final static String SUMMARY_SCORE= "martisep.thymesup.SUMMARY_SCORE";
     public static final String SUMMARY_TEAM = "martisep.thymesup.SUMMARY_TEAM";
-    public static final String ROUND1 = "Popis";
-    public static final String ROUND2 = "Jedno slovo";
-    public static final String ROUND3 = "Šarády";
     private static final int SUMMARY_REQUEST_CODE = 8;
     private static final int FILTER_REQUEST_CODE = 9;
     public static final String ROUND = "martisep.thymesup.ROUND";
@@ -81,7 +78,7 @@ public class GameActivity extends Activity {
             return;
         }
 
-        loadWordsFromDB(topics, 15 * team_count);
+        loadWordsFromDB(topics, 20 * team_count);
         initUIElements();
         //start game
         newGame();
@@ -183,34 +180,20 @@ public class GameActivity extends Activity {
     private void newGame(){
         score = new int[team_count];
         team_names = new String[team_count];
+        for(int i = 0; i < team_count; i++){
+            team_names[i] = "Team " + Integer.toString(i);
+        }
         filtered_words = new ArrayList<>();
         current_team = -1;
         round = 1; //TODO or 0?
-
-        callFilterActivity(0);
+        if(words.size() > 12 * team_count){
+            callFilterActivity(0);
+        } else{
+            filtered_words = words;
+            newRound();
+        }
     }
 
-    private void getTeamName(final int team){
-        final EditText teamName = new EditText(this);
-        teamName.setText("Team " + team);
-
-        new AlertDialog.Builder(this)
-                .setTitle("Team " + Integer.toString(team))
-                .setMessage("Name of your team?")
-                .setCancelable(false)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setView(teamName)
-                .setPositiveButton("Done", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        team_names[team] = teamName.getText().toString();
-                        if (team + 1 == team_count) {
-                            newRound();
-                        } else {
-                            getTeamName(team + 1);
-                        }
-                    }
-                }).show();
-    }
 
     private void newRound(){
         round_words = new ArrayList<>();
@@ -249,7 +232,7 @@ public class GameActivity extends Activity {
 
         //ready?
         new AlertDialog.Builder(this)
-                .setTitle("Team " + team_names[current_team])
+                .setTitle(team_names[current_team])
                 .setMessage("Ready?")
                 .setCancelable(false)
                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -320,11 +303,12 @@ public class GameActivity extends Activity {
 
     private void callFilterActivity(int team){
         Intent filter_intent = new Intent(getApplicationContext(), FilterActivity.class);
-        filter_intent.putExtra(SUMMARY_TEAM, current_team);
+        filter_intent.putExtra(SUMMARY_TEAM, team);
+        filter_intent.putExtra(TEAM_NAME, team_names[team%team_count]);
 
         ArrayList<Entry> words_to_filter = new ArrayList<>();
 
-        int num_entries = Math.round((float) words.size() / team_count);
+        int num_entries = Math.round((float) words.size() / (2*team_count));
 
         for(int i = team*num_entries; i < (team+1)*num_entries && i < words.size(); i++){
             words_to_filter.add(words.get(i));
@@ -334,7 +318,7 @@ public class GameActivity extends Activity {
         try {
             startActivityForResult(filter_intent, FILTER_REQUEST_CODE);
         } catch (ActivityNotFoundException e) {
-            Toast.makeText(getBaseContext(), "No summary activity found.",
+            Toast.makeText(getBaseContext(), "No filter activity found.",
                     Toast.LENGTH_SHORT).show();
         }
     }
@@ -369,7 +353,7 @@ public class GameActivity extends Activity {
         //displayscore
         StringBuilder stringBuilder = new StringBuilder();
         for(int i = 0; i < team_count; i++){
-            stringBuilder.append("Team ").append(team_names[i]).append(": ").append(score[i]).append("\n");
+            stringBuilder.append(team_names[i]).append(": ").append(score[i]).append("\n");
         }
         new AlertDialog.Builder(this)
                 .setTitle("End of round " + Integer.toString(round))
@@ -452,21 +436,23 @@ public class GameActivity extends Activity {
                         newTurn();
                     }
                 }
+                break;
             case FILTER_REQUEST_CODE:
                 if (resultCode == RESULT_OK) {
                     ArrayList<Entry> filtered_entries = data.getParcelableArrayListExtra(GameActivity.SUMMARY);
                     int team = data.getIntExtra(GameActivity.SUMMARY_TEAM, 0);
-                    team_names[team] = data.getStringExtra(GameActivity.TEAM_NAME);
+                    team_names[team%team_count] = data.getStringExtra(GameActivity.TEAM_NAME);
 
 
                     filtered_words.addAll(filtered_entries);
                     team++;
-                    if(team == team_count){
+                    if(team == 2*team_count){
                         newRound();
                     } else {
                         callFilterActivity(team);
                     }
                 }
+                break;
         }
     }
 
