@@ -256,7 +256,37 @@ public class GameActivity extends Activity {
         // The '-1' here means to vibrate once, as '-1' is out of bounds in the pattern array
         v.vibrate(pattern, -1);
         */
+        if(remaining_words == 0){
+            callSummaryActivity();
+        } else{
+            new AlertDialog.Builder(this)
+                    .setTitle("Zahodit poslední slovo?")
+                    .setMessage("Chceš poslední slovo zahodit, nebo nechat dalšímu týmu?")
+                    .setCancelable(false)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setNegativeButton("Zahodit", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            if(round == 1){
+                                round_words.get(current_index).setState(Entry.EntryState.BURNT);
+                                remaining_words--;
+                                if (remaining_words > 0){
+                                    nextWord();
+                                }
+                            } else{
+                                nextWord();
+                            }
+                            callSummaryActivity();
+                        }})
+                    .setPositiveButton("Nechat", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            callSummaryActivity();
+                        }})
+                    .show();
+        }
 
+    }
+
+    private void callSummaryActivity(){
         Intent summary_intent = new Intent(getApplicationContext(), SummaryActivity.class);
         summary_intent.putExtra(SUMMARY_START, turn_start_index);
         summary_intent.putExtra(SUMMARY_COUNT, turn_counter);
