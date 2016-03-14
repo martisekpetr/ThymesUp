@@ -15,12 +15,14 @@ import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.logging.Filter;
 
 
 public class GameActivity extends Activity {
@@ -36,7 +38,10 @@ public class GameActivity extends Activity {
     public static final String ROUND2 = "Jedno slovo";
     public static final String ROUND3 = "Šarády";
     private static final int SUMMARY_REQUEST_CODE = 8;
+    private static final int FILTER_REQUEST_CODE = 9;
     public static final String ROUND = "martisep.thymesup.ROUND";
+    public static final String TEAM_NAME = "martisep.thymesup.TEAM_NAME";
+
 
     // game variables
     private int team_count;
@@ -46,8 +51,10 @@ public class GameActivity extends Activity {
     private int turn_counter;
     private int remaining_words;
     private int[] score;
+    private String[] team_names;
     private int round;
     private ArrayList<Entry> words;
+    private ArrayList<Entry> filtered_words;
     private ArrayList<Entry> round_words;
 
     //ui elements
@@ -175,14 +182,39 @@ public class GameActivity extends Activity {
 
     private void newGame(){
         score = new int[team_count];
+        team_names = new String[team_count];
+        filtered_words = new ArrayList<>();
         current_team = -1;
         round = 1; //TODO or 0?
-        newRound();
+
+        callFilterActivity(0);
+    }
+
+    private void getTeamName(final int team){
+        final EditText teamName = new EditText(this);
+        teamName.setText("Team " + team);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Team " + Integer.toString(team))
+                .setMessage("Name of your team?")
+                .setCancelable(false)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setView(teamName)
+                .setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        team_names[team] = teamName.getText().toString();
+                        if (team + 1 == team_count) {
+                            newRound();
+                        } else {
+                            getTeamName(team + 1);
+                        }
+                    }
+                }).show();
     }
 
     private void newRound(){
         round_words = new ArrayList<>();
-        for(Entry p : words){
+        for(Entry p : filtered_words){
             round_words.add(p.clone());
         }
         Collections.shuffle(round_words);
@@ -217,7 +249,7 @@ public class GameActivity extends Activity {
 
         //ready?
         new AlertDialog.Builder(this)
-                .setTitle("Tým " + Integer.toString(current_team))
+                .setTitle("Team " + team_names[current_team])
                 .setMessage("Ready?")
                 .setCancelable(false)
                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -260,11 +292,11 @@ public class GameActivity extends Activity {
             callSummaryActivity();
         } else{
             new AlertDialog.Builder(this)
-                    .setTitle("Zahodit poslední slovo?")
-                    .setMessage("Chceš poslední slovo zahodit, nebo nechat dalšímu týmu?")
+                    .setTitle("Discard last word?")
+                    .setMessage("Do you want to discard the last word or leave it for the next team?")
                     .setCancelable(false)
                     .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setNegativeButton("Zahodit", new DialogInterface.OnClickListener() {
+                    .setNegativeButton("Discard", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
                             if(round == 1){
                                 round_words.get(current_index).setState(Entry.EntryState.BURNT);
@@ -277,7 +309,7 @@ public class GameActivity extends Activity {
                             }
                             callSummaryActivity();
                         }})
-                    .setPositiveButton("Nechat", new DialogInterface.OnClickListener() {
+                    .setPositiveButton("Leave", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
                             callSummaryActivity();
                         }})
@@ -286,12 +318,34 @@ public class GameActivity extends Activity {
 
     }
 
+    private void callFilterActivity(int team){
+        Intent filter_intent = new Intent(getApplicationContext(), FilterActivity.class);
+        filter_intent.putExtra(SUMMARY_TEAM, current_team);
+
+        ArrayList<Entry> words_to_filter = new ArrayList<>();
+
+        int num_entries = Math.round((float) words.size() / team_count);
+
+        for(int i = team*num_entries; i < (team+1)*num_entries && i < words.size(); i++){
+            words_to_filter.add(words.get(i));
+        }
+        filter_intent.putParcelableArrayListExtra(SUMMARY, words_to_filter);
+
+        try {
+            startActivityForResult(filter_intent, FILTER_REQUEST_CODE);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(getBaseContext(), "No summary activity found.",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void callSummaryActivity(){
         Intent summary_intent = new Intent(getApplicationContext(), SummaryActivity.class);
         summary_intent.putExtra(SUMMARY_START, turn_start_index);
         summary_intent.putExtra(SUMMARY_COUNT, turn_counter);
         summary_intent.putExtra(SUMMARY_SCORE, score[current_team]);
         summary_intent.putExtra(SUMMARY_TEAM, current_team );
+        summary_intent.putExtra(TEAM_NAME, team_names[current_team]);
         summary_intent.putExtra(ROUND, round);
 
         // copy only words which player cycled through (without repeat)
@@ -315,14 +369,14 @@ public class GameActivity extends Activity {
         //displayscore
         StringBuilder stringBuilder = new StringBuilder();
         for(int i = 0; i < team_count; i++){
-            stringBuilder.append("Tým ").append(i).append(": ").append(score[i]).append("\n");
+            stringBuilder.append("Team ").append(team_names[i]).append(": ").append(score[i]).append("\n");
         }
         new AlertDialog.Builder(this)
-                .setTitle("Konec " + Integer.toString(round)+ ". kola")
-                .setMessage("Skóre\n" + stringBuilder.toString())
+                .setTitle("End of round " + Integer.toString(round))
+                .setMessage("Score:\n" + stringBuilder.toString())
                 .setIcon(android.R.drawable.ic_dialog_info)
                 .setCancelable(false)
-                .setPositiveButton("Další kolo", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Next round", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         round++;
                         if (round == 4) {
@@ -396,6 +450,21 @@ public class GameActivity extends Activity {
                         name_text.setText(round_words.get(current_index).getName());
                         keywords_text.setText(round_words.get(current_index).getKeywords());
                         newTurn();
+                    }
+                }
+            case FILTER_REQUEST_CODE:
+                if (resultCode == RESULT_OK) {
+                    ArrayList<Entry> filtered_entries = data.getParcelableArrayListExtra(GameActivity.SUMMARY);
+                    int team = data.getIntExtra(GameActivity.SUMMARY_TEAM, 0);
+                    team_names[team] = data.getStringExtra(GameActivity.TEAM_NAME);
+
+
+                    filtered_words.addAll(filtered_entries);
+                    team++;
+                    if(team == team_count){
+                        newRound();
+                    } else {
+                        callFilterActivity(team);
                     }
                 }
         }

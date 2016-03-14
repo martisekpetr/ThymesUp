@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="15dp">
 
-        <TextView android:text="Počet týmů: "
+        <TextView android:text="Number of teams: "
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
@@ -28,7 +28,7 @@
             />
     </LinearLayout>
 
-    <TextView android:text="Témata: "
+    <TextView android:text="Topics: "
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="5dp"
@@ -47,7 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="0"
         android:layout_marginTop="10dp"
-        android:text="Importovat téma"
+        android:text="Import topic"
         android:id="@+id/button_import"
         android:paddingTop="5dp"
         android:paddingBottom="5dp"
@@ -65,7 +65,7 @@
         android:layout_height="wrap_content"
         android:textSize="20sp"
         android:layout_weight="0"
-        android:text="Spustit"
+        android:text="Start"
         android:id="@+id/button_start"
         android:background="#ff40a244"
         android:paddingTop="15dp"

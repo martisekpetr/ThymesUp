@@ -20,6 +20,7 @@ public class SummaryActivity extends Activity {
     int current_score;
     int current_team;
     int round;
+    String team_name;
     TextView score_view;
     ArrayList<Entry> used_entries;
     ListView listView;
@@ -35,6 +36,7 @@ public class SummaryActivity extends Activity {
         current_team = intent.getIntExtra(GameActivity.SUMMARY_TEAM, 0);
         used_entries = intent.getParcelableArrayListExtra(GameActivity.SUMMARY);
         round = intent.getIntExtra(GameActivity.ROUND, 2);
+        team_name = intent.getStringExtra(GameActivity.TEAM_NAME);
 
         score_view = (TextView) findViewById(R.id.textView_score);
         listView = (ListView) findViewById(R.id.listViewSummary);
@@ -84,7 +86,7 @@ public class SummaryActivity extends Activity {
     }
 
     private void repaintScore(){
-        score_view.setText("Aktuální skóre (Tým "+ current_team +"): "+ (current_score + listView.getCheckedItemCount()));
+        score_view.setText("Current score (Team "+ team_name +"): "+ (current_score + listView.getCheckedItemCount()));
     }
 
     @Override

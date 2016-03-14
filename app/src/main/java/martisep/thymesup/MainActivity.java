@@ -50,7 +50,7 @@ public class MainActivity extends ActionBarActivity {
         dbController = new DBController(this);
         SQLiteDatabase db = dbController.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT rowid _id,* FROM " + DBController.TOPICS_TABLE, null);
-        String[] from = new String[]{DBController.TOPIC_COLUMN, DBController.COUNT_COLUMN}; //TODO
+        String[] from = new String[]{DBController.TOPIC_COLUMN, DBController.COUNT_COLUMN};
         int[] to = new int[]{R.id.checkedTextView1};
         adapter = new SimpleCursorAdapter(this, R.layout.list_item, cursor, from , to ,0);
         adapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
@@ -105,7 +105,7 @@ public class MainActivity extends ActionBarActivity {
                     }
                 }
                 if(topics.isEmpty()){
-                    Toast toast = Toast.makeText(getBaseContext(), "Vyber nějaká témata!",
+                    Toast toast = Toast.makeText(getBaseContext(), "Select at least 1 topic!",
                             Toast.LENGTH_SHORT);
                     toast.setGravity(Gravity.TOP| Gravity.CENTER_HORIZONTAL, 0, 0);
                     toast.show();
