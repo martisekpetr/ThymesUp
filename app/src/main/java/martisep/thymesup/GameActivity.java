@@ -15,52 +15,49 @@ import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.logging.Filter;
 
 
 public class GameActivity extends Activity {
     // string constants
-    public final static String TEAM_COUNT_MESSAGE = "martisep.thymesup.TEAM_COUNT_MESSAGE";
-    public final static String TOPICS_MESSAGE = "martisep.thymesup.TOPICS_MESSAGE";
-    public final static String SUMMARY_START = "martisep.thymesup.SUMMARY_START";
-    public final static String SUMMARY_COUNT = "martisep.thymesup.SUMMARY_COUNT";
-    public final static String SUMMARY= "martisep.thymesup.SUMMARY";
-    public final static String SUMMARY_SCORE= "martisep.thymesup.SUMMARY_SCORE";
-    public static final String SUMMARY_TEAM = "martisep.thymesup.SUMMARY_TEAM";
-    private static final int SUMMARY_REQUEST_CODE = 8;
-    private static final int FILTER_REQUEST_CODE = 9;
+    public final static String TEAM_COUNT = "martisep.thymesup.TEAM_COUNT";
+    public final static String TOPICS = "martisep.thymesup.TOPICS";
+    public final static String ENTRIES_LIST = "martisep.thymesup.ENTRIES_LIST";
+    public final static String SCORE = "martisep.thymesup.SCORE";
+    public static final String PLAYER_INDEX = "martisep.thymesup.PLAYER_INDEX";
     public static final String ROUND = "martisep.thymesup.ROUND";
     public static final String TEAM_NAME = "martisep.thymesup.TEAM_NAME";
-
+    private static final int SUMMARY_REQUEST_CODE = 8;
+    private static final int FILTER_REQUEST_CODE = 9;
+    private static final int NUM_ROUNDS = 3;
 
     // game variables
     private int team_count;
+    private int[] score;
+    private String[] team_names;
+    private ArrayList<Entry> words;
+    private ArrayList<Entry> filtered_words;
+    // round variables
+    private int round;
+    private int remaining_words;
+    private ArrayList<Entry> round_words;
+    // turn variables
     private int current_team;
     private int current_index;
     private int turn_start_index;
     private int turn_counter;
-    private int remaining_words;
-    private int[] score;
-    private String[] team_names;
-    private int round;
-    private ArrayList<Entry> words;
-    private ArrayList<Entry> filtered_words;
-    private ArrayList<Entry> round_words;
 
     //ui elements
-    Intent intent;
     TextView name_text;
     TextView keywords_text;
-    ProgressBar mProgressBar;
-    CountDownTimer mCountDownTimer;
-    TextView mCountDown;
+    ProgressBar progress_bar_countdown;
+    CountDownTimer countDownTimer;
+    TextView countdown_text;
     Button btn_correct;
     Button btn_skip;
     Button btn_burn;
@@ -71,87 +68,23 @@ public class GameActivity extends Activity {
         setContentView(R.layout.activity_game);
 
         // get parameters of the game from intent
-        intent = getIntent();
-        team_count = intent.getIntExtra(TEAM_COUNT_MESSAGE,2);
-        String[] topics = (intent.getStringArrayListExtra(TOPICS_MESSAGE)).toArray(new String[0]);
-        if(topics.length == 0){
-            return;
-        }
+        Intent intent = getIntent();
+        team_count = intent.getIntExtra(TEAM_COUNT,2);
+        String[] topics = (intent.getStringArrayListExtra(TOPICS)).toArray(new String[0]);
 
+        // prepare words
         loadWordsFromDB(topics, 20 * team_count);
+        // prepare ui elements
         initUIElements();
         //start game
         newGame();
-    }
-
-    private void initUIElements(){
-        // init ui elements
-        name_text = (TextView)findViewById(R.id.guessedWord);
-        keywords_text = (TextView)findViewById(R.id.guessedKeywords);
-
-        btn_correct = (Button) findViewById(R.id.button_correct);
-        btn_skip = (Button) findViewById(R.id.button_skip);
-        btn_burn = (Button) findViewById(R.id.button_burn);
-
-        btn_correct.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                round_words.get(current_index).setState(Entry.EntryState.GUESSED);
-                remaining_words--;
-                if (remaining_words == 0){
-                    turn_counter++;
-                    endTurn(); // not yet endRound! some words may be corrected in summary
-                } else {
-                    nextWord();
-                }
-            }
-        });
-        btn_skip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                nextWord();
-            }
-        });
-        btn_burn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                round_words.get(current_index).setState(Entry.EntryState.BURNT);
-                remaining_words--;
-                if (remaining_words == 0){
-                    turn_counter++;
-                    endTurn(); // not yet endRound! some words may be corrected in summary
-                } else {
-                    nextWord();
-                }
-            }
-        });
-
-        mProgressBar=(ProgressBar)findViewById(R.id.progressBar);
-        mCountDown = (TextView) findViewById(R.id.coundown);
-        mProgressBar.setRotation(180);
-
-        mCountDownTimer = new CountDownTimer(30000,500) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                mProgressBar.setProgress((int) (millisUntilFinished / 1000 + 1));
-                mCountDown.setText(Integer.toString((int) (millisUntilFinished / 1000 + 1)));
-            }
-
-            @Override
-            public void onFinish() {
-                mProgressBar.setProgress(0);
-                mCountDown.setText(Integer.toString(0));
-                endTurn();
-            }
-        };
-
     }
 
     private void loadWordsFromDB(String[] topics, int word_limit) {
         // get random set of words of given size from database according to selected topics
         DBController dbController = new DBController(this);
         SQLiteDatabase db = dbController.getReadableDatabase();
-        String query = "SELECT DISTINCT "
+        String query = "SELECT DISTINCT "   // topics can overlap, filter duplicates
                 + DBController.NAME_COLUMN
                 + ", "
                 + DBController.KEYWORDS_COLUMN
@@ -177,31 +110,87 @@ public class GameActivity extends Activity {
         c.close();
     }
 
+    private void initUIElements(){
+        name_text = (TextView)findViewById(R.id.guessedWord);
+        keywords_text = (TextView)findViewById(R.id.guessedKeywords);
+        btn_correct = (Button) findViewById(R.id.button_correct);
+        btn_skip = (Button) findViewById(R.id.button_skip);
+        btn_burn = (Button) findViewById(R.id.button_burn);
+
+        btn_correct.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                round_words.get(current_index).setState(Entry.EntryState.GUESSED);
+                remaining_words--;
+                nextWord();
+            }
+        });
+        btn_skip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                nextWord();
+            }
+        });
+        btn_burn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                round_words.get(current_index).setState(Entry.EntryState.BURNT);
+                remaining_words--;
+                nextWord();
+            }
+        });
+
+        progress_bar_countdown =(ProgressBar)findViewById(R.id.progressBar);
+        countdown_text = (TextView) findViewById(R.id.coundown);
+        progress_bar_countdown.setRotation(180); // bar decreases from left to right
+
+        // change every 1000 ms, but check every 500 ms (otherwise the last second will not be updated!)
+        countDownTimer = new CountDownTimer(30000,500) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                progress_bar_countdown.setProgress((int) (millisUntilFinished / 1000 + 1)); //round up
+                countdown_text.setText(Integer.toString((int) (millisUntilFinished / 1000 + 1)));
+            }
+            @Override
+            public void onFinish() {
+                progress_bar_countdown.setProgress(0);
+                countdown_text.setText(Integer.toString(0));
+                endTurn();
+            }
+        };
+    }
+
     private void newGame(){
         score = new int[team_count];
         team_names = new String[team_count];
+
+        // default team names
         for(int i = 0; i < team_count; i++){
             team_names[i] = "Team " + Integer.toString(i);
         }
-        filtered_words = new ArrayList<>();
+
         current_team = -1;
-        round = 1; //TODO or 0?
+        round = 0;
+        filtered_words = new ArrayList<>();
+
+        // only let players filter if there are at least 6 words per player (12 per team)
         if(words.size() > 12 * team_count){
-            callFilterActivity(0);
+            callFilterActivity(0); // eventually calls newRound()
         } else{
-            filtered_words = words;
+            filtered_words = words; //TODO stuck with default team names
             newRound();
         }
     }
 
-
     private void newRound(){
+        round++;
         round_words = new ArrayList<>();
         for(Entry p : filtered_words){
             round_words.add(p.clone());
         }
         Collections.shuffle(round_words);
 
+        // first round it is possible to burn cards (i.e. rules violation), in second and third player can skip cards
         if(round == 1){
             btn_burn.setVisibility(View.VISIBLE);
             btn_skip.setVisibility(View.GONE);
@@ -213,8 +202,9 @@ public class GameActivity extends Activity {
         remaining_words = round_words.size();
         current_index = -1;
         turn_start_index = 0;
+
         nextWord();
-        newTurn();
+        newTurn(); // order is important! (turn_counter must be reset to 0 in newTurn())
     }
 
     private void newTurn(){
@@ -223,8 +213,8 @@ public class GameActivity extends Activity {
         turn_counter = 0;
 
         //reset countdown
-        mProgressBar.setProgress(30);
-        mCountDown.setText("30");
+        progress_bar_countdown.setProgress(30);
+        countdown_text.setText("30");
 
         //hide texts until countdown started
         name_text.setVisibility(View.INVISIBLE);
@@ -240,27 +230,31 @@ public class GameActivity extends Activity {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         name_text.setVisibility(View.VISIBLE);
                         keywords_text.setVisibility(View.VISIBLE);
-                        mCountDownTimer.start();
+                        countDownTimer.start();
                     }}).show();
     }
 
     private void nextWord(){
         if(round_words.size() == 0){ return; }
 
-        // get next "not yet guessed" word (if exists)
-        do{
-            current_index = (current_index + 1) % round_words.size();
-        } while(round_words.get(current_index).getState() != Entry.EntryState.NONE);
-
         turn_counter++; // count how many words the player cycled through
+        if (remaining_words == 0){
+            endTurn(); // not yet endRound! some words may be returned to play in SummaryActivity
+        } else {
+            // get next not yet guessed (or burnt) word
+            do{
+                current_index = (current_index + 1) % round_words.size();
+            } while(round_words.get(current_index).getState() != Entry.EntryState.NONE);
 
-        name_text.setText(round_words.get(current_index).getName());
-        keywords_text.setText(round_words.get(current_index).getKeywords());
+            name_text.setText(round_words.get(current_index).getName());
+            keywords_text.setText(round_words.get(current_index).getKeywords());
+        }
     }
 
     private void endTurn(){
-        mCountDownTimer.cancel(); //should already be stopped, except in the end of the round
-        /*
+        countDownTimer.cancel(); //should already be stopped, except in the end of the round
+
+        // play alarm and vibrate
         MediaPlayer mPlayer = MediaPlayer.create(getApplicationContext(), R.raw.fifth_short);
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mPlayer.setVolume(1.0f, 1.0f);
@@ -268,12 +262,9 @@ public class GameActivity extends Activity {
 
         Vibrator v = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
         long[] pattern = {100,60,110,60,110,60,100, 2000};
-        // The '-1' here means to vibrate once, as '-1' is out of bounds in the pattern array
-        v.vibrate(pattern, -1);
-        */
-        if(remaining_words == 0){
-            callSummaryActivity();
-        } else{
+        v.vibrate(pattern, -1); // The '-1' here means to vibrate once, as '-1' is out of bounds in the pattern array
+
+        if (remaining_words > 0) {
             new AlertDialog.Builder(this)
                     .setTitle("Discard last word?")
                     .setMessage("Do you want to discard the last word or leave it for the next team?")
@@ -281,15 +272,11 @@ public class GameActivity extends Activity {
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setNegativeButton("Discard", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
-                            if(round == 1){
+                            if(round == 1) {
                                 round_words.get(current_index).setState(Entry.EntryState.BURNT);
                                 remaining_words--;
-                                if (remaining_words > 0){
-                                    nextWord();
-                                }
-                            } else{
-                                nextWord();
                             }
+                            nextWord(); //TODO next word can be seen by current player
                             callSummaryActivity();
                         }})
                     .setPositiveButton("Leave", new DialogInterface.OnClickListener() {
@@ -297,23 +284,26 @@ public class GameActivity extends Activity {
                             callSummaryActivity();
                         }})
                     .show();
+        } else {
+            callSummaryActivity();
         }
-
     }
 
-    private void callFilterActivity(int team){
+    // let players filter the entries
+    private void callFilterActivity(int player){
         Intent filter_intent = new Intent(getApplicationContext(), FilterActivity.class);
-        filter_intent.putExtra(SUMMARY_TEAM, team);
-        filter_intent.putExtra(TEAM_NAME, team_names[team%team_count]);
+        filter_intent.putExtra(PLAYER_INDEX, player);
+        filter_intent.putExtra(TEAM_NAME, team_names[player % team_count]);
 
         ArrayList<Entry> words_to_filter = new ArrayList<>();
 
-        int num_entries = Math.round((float) words.size() / (2*team_count));
+        // divide entries among players (2 * team count)
+        int num_entries = Math.round((float) words.size() / (2 * team_count));
 
-        for(int i = team*num_entries; i < (team+1)*num_entries && i < words.size(); i++){
+        for(int i = player*num_entries; i < (player+1)*num_entries && i < words.size(); i++){
             words_to_filter.add(words.get(i));
         }
-        filter_intent.putParcelableArrayListExtra(SUMMARY, words_to_filter);
+        filter_intent.putParcelableArrayListExtra(ENTRIES_LIST, words_to_filter);
 
         try {
             startActivityForResult(filter_intent, FILTER_REQUEST_CODE);
@@ -323,12 +313,10 @@ public class GameActivity extends Activity {
         }
     }
 
+    // let player check which entries he guessed / discarded
     private void callSummaryActivity(){
         Intent summary_intent = new Intent(getApplicationContext(), SummaryActivity.class);
-        summary_intent.putExtra(SUMMARY_START, turn_start_index);
-        summary_intent.putExtra(SUMMARY_COUNT, turn_counter);
-        summary_intent.putExtra(SUMMARY_SCORE, score[current_team]);
-        summary_intent.putExtra(SUMMARY_TEAM, current_team );
+        summary_intent.putExtra(SCORE, score[current_team]);
         summary_intent.putExtra(TEAM_NAME, team_names[current_team]);
         summary_intent.putExtra(ROUND, round);
 
@@ -339,7 +327,7 @@ public class GameActivity extends Activity {
         for(int i = 0; i < turn_counter; i++){
             used_words.add(round_words.get((turn_start_index + i) % round_words.size()));
         }
-        summary_intent.putParcelableArrayListExtra(SUMMARY, used_words);
+        summary_intent.putParcelableArrayListExtra(ENTRIES_LIST, used_words);
 
         try {
             startActivityForResult(summary_intent, SUMMARY_REQUEST_CODE);
@@ -350,7 +338,7 @@ public class GameActivity extends Activity {
     }
 
     private void endRound(){
-        //displayscore
+        // display current score
         StringBuilder stringBuilder = new StringBuilder();
         for(int i = 0; i < team_count; i++){
             stringBuilder.append(team_names[i]).append(": ").append(score[i]).append("\n");
@@ -362,8 +350,7 @@ public class GameActivity extends Activity {
                 .setCancelable(false)
                 .setPositiveButton("Next round", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        round++;
-                        if (round == 4) {
+                        if (round == NUM_ROUNDS) {
                             finish();
                         } else {
                             newRound();
@@ -393,9 +380,9 @@ public class GameActivity extends Activity {
         switch(requestCode){
             case SUMMARY_REQUEST_CODE:
                 if (resultCode == RESULT_OK) {
-                    score[current_team] = data.getIntExtra(GameActivity.SUMMARY_SCORE, score[current_team]);
+                    score[current_team] = data.getIntExtra(GameActivity.SCORE, score[current_team]);
 
-                    ArrayList<Entry> corrected_entries = data.getParcelableArrayListExtra(GameActivity.SUMMARY);
+                    ArrayList<Entry> corrected_entries = data.getParcelableArrayListExtra(GameActivity.ENTRIES_LIST);
 
                     // correct guessed/not-guessed words
                     for(int i = 0; i < turn_counter; i++){
@@ -439,17 +426,16 @@ public class GameActivity extends Activity {
                 break;
             case FILTER_REQUEST_CODE:
                 if (resultCode == RESULT_OK) {
-                    ArrayList<Entry> filtered_entries = data.getParcelableArrayListExtra(GameActivity.SUMMARY);
-                    int team = data.getIntExtra(GameActivity.SUMMARY_TEAM, 0);
-                    team_names[team%team_count] = data.getStringExtra(GameActivity.TEAM_NAME);
-
+                    ArrayList<Entry> filtered_entries = data.getParcelableArrayListExtra(GameActivity.ENTRIES_LIST);
+                    int player = data.getIntExtra(GameActivity.PLAYER_INDEX, 0);
+                    team_names[player % team_count] = data.getStringExtra(GameActivity.TEAM_NAME);
 
                     filtered_words.addAll(filtered_entries);
-                    team++;
-                    if(team == 2*team_count){
+                    player++;
+                    if(player == 2*team_count){
                         newRound();
                     } else {
-                        callFilterActivity(team);
+                        callFilterActivity(player);
                     }
                 }
                 break;

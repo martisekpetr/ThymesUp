@@ -2,13 +2,10 @@ package martisep.thymesup;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 
 public class DBController extends SQLiteAssetHelper{
-    private static final String LOGCAT = null;
     public static final String ENTRIES_TABLE = "entries";
     public static final String TOPICS_TABLE = "topics";
     public static final String NAME_COLUMN = "Name";

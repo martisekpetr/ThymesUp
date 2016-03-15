@@ -11,8 +11,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="15dp">
-
-        <TextView android:text="Number of teams: "
+        <TextView android:text="@string/team_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
@@ -27,27 +26,24 @@
             android:entries="@array/spinnerItems"
             />
     </LinearLayout>
-
-    <TextView android:text="Topics: "
+    <TextView android:text="@string/topics"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="5dp"
         android:layout_marginEnd="5dp"
-        android:id="@+id/textViewTemata" />
+        android:id="@+id/textViewTopics" />
     <ListView
-        android:id="@+id/listView1"
+        android:id="@+id/listViewTopics"
         android:fadeScrollbars="false"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_width="match_parent">
-    </ListView>
-
+        android:layout_width="match_parent" />
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
         android:layout_marginTop="10dp"
-        android:text="Import topic"
+        android:text="@string/import_topic"
         android:id="@+id/button_import"
         android:paddingTop="5dp"
         android:paddingBottom="5dp"
@@ -56,23 +52,14 @@
         android:paddingLeft="0dp"
         android:background="@color/button_material_dark"
         android:layout_marginBottom="10dp" />
-
-
-
-
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textSize="20sp"
         android:layout_weight="0"
-        android:text="Start"
+        android:text="@string/start_game"
         android:id="@+id/button_start"
         android:background="#ff40a244"
         android:paddingTop="15dp"
         android:paddingBottom="15dp" />
-
-
-
-
-
 </LinearLayout>

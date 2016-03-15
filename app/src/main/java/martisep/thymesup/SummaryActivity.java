@@ -16,14 +16,13 @@ import java.util.ArrayList;
 
 
 public class SummaryActivity extends Activity {
-    int score_gain;
     int current_score;
-    int current_team;
     int round;
     String team_name;
-    TextView score_view;
     ArrayList<Entry> used_entries;
-    ListView listView;
+
+    TextView score_view;
+    ListView list_view_summary;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,38 +31,36 @@ public class SummaryActivity extends Activity {
 
         // extract data from Intent
         Intent intent = getIntent();
-        current_score = intent.getIntExtra(GameActivity.SUMMARY_SCORE, 0);
-        current_team = intent.getIntExtra(GameActivity.SUMMARY_TEAM, 0);
-        used_entries = intent.getParcelableArrayListExtra(GameActivity.SUMMARY);
+        current_score = intent.getIntExtra(GameActivity.SCORE, 0);
+        used_entries = intent.getParcelableArrayListExtra(GameActivity.ENTRIES_LIST);
         round = intent.getIntExtra(GameActivity.ROUND, 2);
         team_name = intent.getStringExtra(GameActivity.TEAM_NAME);
 
+        // set ui elements
         score_view = (TextView) findViewById(R.id.textView_score);
-        listView = (ListView) findViewById(R.id.listViewSummary);
+        list_view_summary = (ListView) findViewById(R.id.listViewSummary);
         ArrayAdapter<Entry> adapter = new ArrayAdapter<>(this, R.layout.list_item, used_entries);
-        listView.setAdapter(adapter);
-        listView.setItemsCanFocus(false);
-        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        list_view_summary.setAdapter(adapter);
+        list_view_summary.setItemsCanFocus(false);
+        list_view_summary.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         // check guessed items
         for(int i = 0; i < adapter.getCount(); i++){
-            listView.setItemChecked(i, adapter.getItem(i).isGuessed());
+            list_view_summary.setItemChecked(i, adapter.getItem(i).isGuessed());
         }
-        score_gain = 0;
         repaintScore();
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        list_view_summary.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.d(null, Integer.toString(listView.getCheckedItemCount()));
-                SparseBooleanArray checked = listView.getCheckedItemPositions();
+                SparseBooleanArray checked = list_view_summary.getCheckedItemPositions();
                 for (int i = 0; i < checked.size(); i++) {
-                    if(checked.get(i)){
-                        ((Entry) listView.getAdapter().getItem(i)).setState(Entry.EntryState.GUESSED);
+                    if (checked.get(i)) {
+                        ((Entry) list_view_summary.getAdapter().getItem(i)).setState(Entry.EntryState.GUESSED);
                     } else {
-                        if(round == 1){
-                            ((Entry) listView.getAdapter().getItem(i)).setState(Entry.EntryState.BURNT);
-                        } else{
-                            ((Entry) listView.getAdapter().getItem(i)).setState(Entry.EntryState.NONE);
+                        if (round == 1) {
+                            ((Entry) list_view_summary.getAdapter().getItem(i)).setState(Entry.EntryState.BURNT);
+                        } else {
+                            ((Entry) list_view_summary.getAdapter().getItem(i)).setState(Entry.EntryState.NONE);
                         }
                     }
                 }
@@ -71,14 +68,15 @@ public class SummaryActivity extends Activity {
             }
         });
 
-        Button confirmBtn = (Button) findViewById(R.id.button_confirm_summary);
-        confirmBtn.setOnClickListener(new View.OnClickListener() {
+        Button confirm_btn = (Button) findViewById(R.id.button_confirm_summary);
+        confirm_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent();
+
                 // return new score of the team and updated entries
-                intent.putExtra(GameActivity.SUMMARY_SCORE, current_score + listView.getCheckedItemCount());
-                intent.putParcelableArrayListExtra(GameActivity.SUMMARY, used_entries);
+                intent.putExtra(GameActivity.SCORE, current_score + list_view_summary.getCheckedItemCount());
+                intent.putParcelableArrayListExtra(GameActivity.ENTRIES_LIST, used_entries);
                 setResult(RESULT_OK, intent);
                 finish();
             }
@@ -86,7 +84,7 @@ public class SummaryActivity extends Activity {
     }
 
     private void repaintScore(){
-        score_view.setText("Current score ("+ team_name +"): "+ (current_score + listView.getCheckedItemCount()));
+        score_view.setText("Current score (" + team_name + "): " + (current_score + list_view_summary.getCheckedItemCount()));
     }
 
     @Override

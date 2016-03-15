@@ -16,10 +16,11 @@ import java.util.ArrayList;
 
 
 public class FilterActivity extends Activity {
-    private int team;
+    private int team_index;
     private ArrayList<Entry> filtered_entries;
+
     private ListView listView;
-    private EditText teamNameEditText;
+    private EditText edit_text_team_name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,13 +29,14 @@ public class FilterActivity extends Activity {
 
         // extract data from Intent
         Intent intent = getIntent();
-        team = intent.getIntExtra(GameActivity.SUMMARY_TEAM, 0);
+        team_index = intent.getIntExtra(GameActivity.PLAYER_INDEX, 0);
         String team_name = intent.getStringExtra(GameActivity.TEAM_NAME);
-        filtered_entries = intent.getParcelableArrayListExtra(GameActivity.SUMMARY);
+        filtered_entries = intent.getParcelableArrayListExtra(GameActivity.ENTRIES_LIST);
 
-        teamNameEditText = (EditText) findViewById(R.id.editTextTeamName);
-        teamNameEditText.setText(team_name);
-        teamNameEditText.selectAll();
+        // set up ui elements
+        edit_text_team_name = (EditText) findViewById(R.id.editTextTeamName);
+        edit_text_team_name.setText(team_name);
+        //edit_text_team_name.selectAll();
 
         listView = (ListView) findViewById(R.id.listViewFilter);
         ArrayAdapter<Entry> adapter = new ArrayAdapter<>(this, R.layout.list_item, filtered_entries);
@@ -46,12 +48,11 @@ public class FilterActivity extends Activity {
             listView.setItemChecked(i, true);
         }
 
-
         Button confirmBtn = (Button) findViewById(R.id.button_confirm_filter);
         confirmBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(listView.getCheckedItemCount() != 6){
+                if(listView.getCheckedItemCount() != Math.min(6,filtered_entries.size())){
                     Toast toast = Toast.makeText(getBaseContext(), "Choose 6 entries.",
                             Toast.LENGTH_SHORT);
                     toast.setGravity(Gravity.TOP| Gravity.CENTER_HORIZONTAL, 0, 0);
@@ -63,12 +64,12 @@ public class FilterActivity extends Activity {
                             filtered_entries.remove(i);
                         }
                     }
-                    Intent intent = new Intent();
 
                     // return new filtered entries
-                    intent.putParcelableArrayListExtra(GameActivity.SUMMARY, filtered_entries);
-                    intent.putExtra(GameActivity.SUMMARY_TEAM, team);
-                    intent.putExtra(GameActivity.TEAM_NAME, teamNameEditText.getText().toString());
+                    Intent intent = new Intent();
+                    intent.putParcelableArrayListExtra(GameActivity.ENTRIES_LIST, filtered_entries);
+                    intent.putExtra(GameActivity.PLAYER_INDEX, team_index);
+                    intent.putExtra(GameActivity.TEAM_NAME, edit_text_team_name.getText().toString());
                     setResult(RESULT_OK, intent);
                     finish();
                 }

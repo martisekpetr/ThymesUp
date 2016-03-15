@@ -14,5 +14,11 @@
     <string name="check_guessed">Check guessed words:</string>
     <string name="confirm">Confirm</string>
     <string name="title_activity_filter">FilterActivity</string>
+    <string name="topics">Topics:</string>
+    <string name="import_topic">Import topic</string>
+    <string name="start_game">Start</string>
+    <string name="team_count">Number of teams:</string>
+    <string name="team_name">Name of the team:</string>
+    <string name="select_six_entries">Select 6 entries:</string>
 
 </resources>

@@ -18,10 +18,7 @@
         android:fadeScrollbars="false"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_width="match_parent">
-
-    </ListView>
-
+        android:layout_width="match_parent" />
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -32,12 +29,10 @@
         android:textColor="#ff34d3c8"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp" />
-
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/confirm"
         android:id="@+id/button_confirm_summary"
         android:layout_weight="0" />
-
 </LinearLayout>
