@@ -133,7 +133,7 @@ public class MainActivity extends ActionBarActivity {
                     if (resultCode == RESULT_OK) {
                         try {
                             // broken special characters with UTF8 (why???)
-                            BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(filepath), "ISO-8859-2"));
+                            BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(filepath)));
                             ContentValues contentValues = new ContentValues();
                             String line;
                             db.beginTransaction();
