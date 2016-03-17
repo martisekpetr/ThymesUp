@@ -2,8 +2,11 @@ package martisep.thymesup;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
+
+//public class DBController extends SQLiteOpenHelper{
 
 public class DBController extends SQLiteAssetHelper{
     public static final String ENTRIES_TABLE = "entries";
@@ -20,7 +23,27 @@ public class DBController extends SQLiteAssetHelper{
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-
+    /*
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS "
+                        + ENTRIES_TABLE
+                        + " ( Id INTEGER PRIMARY KEY, "
+                        + NAME_COLUMN
+                        + " TEXT, "
+                        + KEYWORDS_COLUMN
+                        + " TEXT, "
+                        + TOPIC_COLUMN
+                        + " TEXT)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS "
+                        + TOPICS_TABLE
+                        + " ( Id INTEGER PRIMARY KEY, "
+                        + TOPIC_COLUMN
+                        + " TEXT, "
+                        + COUNT_COLUMN
+                        + " INTEGER)");
+        }
+    */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + ENTRIES_TABLE);

@@ -10,6 +10,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Vibrator;
@@ -142,7 +143,9 @@ public class GameActivity extends Activity {
 
         progress_bar_countdown =(ProgressBar)findViewById(R.id.progressBar);
         countdown_text = (TextView) findViewById(R.id.coundown);
-        progress_bar_countdown.setRotation(180); // bar decreases from left to right
+        if (Build.VERSION.SDK_INT >= 11){
+            progress_bar_countdown.setRotation(180); // bar decreases from left to right
+        }
 
         // change every 1000 ms, but check every 500 ms (otherwise the last second will not be updated!)
         countDownTimer = new CountDownTimer(30000,500) {

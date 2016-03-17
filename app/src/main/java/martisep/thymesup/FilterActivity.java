@@ -2,6 +2,7 @@ package martisep.thymesup;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.SparseBooleanArray;
 import android.view.Gravity;
@@ -52,7 +53,7 @@ public class FilterActivity extends Activity {
         confirmBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(listView.getCheckedItemCount() != Math.min(6,filtered_entries.size())){
+                if(getCheckedItemCount(listView) != Math.min(6,filtered_entries.size())){
                     Toast toast = Toast.makeText(getBaseContext(), "Choose 6 entries.",
                             Toast.LENGTH_SHORT);
                     toast.setGravity(Gravity.TOP| Gravity.CENTER_HORIZONTAL, 0, 0);
@@ -80,6 +81,21 @@ public class FilterActivity extends Activity {
     @Override
     public void onBackPressed() {
         // do nothing.
+    }
+
+    public static int getCheckedItemCount(ListView listView) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            return listView.getCheckedItemCount();
+        }
+
+        SparseBooleanArray checkedItems = listView.getCheckedItemPositions();
+        int count = 0;
+        for (int i = 0, size = checkedItems.size(); i < size; ++i) {
+            if (checkedItems.valueAt(i)) {
+                count++;
+            }
+        }
+        return count;
     }
 
 

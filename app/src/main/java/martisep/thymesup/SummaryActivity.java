@@ -75,7 +75,7 @@ public class SummaryActivity extends Activity {
                 Intent intent = new Intent();
 
                 // return new score of the team and updated entries
-                intent.putExtra(GameActivity.SCORE, current_score + list_view_summary.getCheckedItemCount());
+                intent.putExtra(GameActivity.SCORE, current_score + FilterActivity.getCheckedItemCount(list_view_summary));
                 intent.putParcelableArrayListExtra(GameActivity.ENTRIES_LIST, used_entries);
                 setResult(RESULT_OK, intent);
                 finish();
@@ -84,7 +84,7 @@ public class SummaryActivity extends Activity {
     }
 
     private void repaintScore(){
-        score_view.setText("Current score (" + team_name + "): " + (current_score + list_view_summary.getCheckedItemCount()));
+        score_view.setText("Current score (" + team_name + "): " + (current_score + FilterActivity.getCheckedItemCount(list_view_summary)));
     }
 
     @Override
