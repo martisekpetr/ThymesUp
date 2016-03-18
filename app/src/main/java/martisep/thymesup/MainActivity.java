@@ -1,5 +1,6 @@
 package martisep.thymesup;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -8,28 +9,28 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckedTextView;
 import android.widget.ListView;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.opencsv.CSVReader;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
     Button btn_import;
     Button btn_start;
     ListView list_view_topics;
@@ -132,20 +133,16 @@ public class MainActivity extends ActionBarActivity {
                 try {
                     if (resultCode == RESULT_OK) {
                         try {
-                            // broken special characters with UTF8 (why???)
-                            BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(filepath)));
                             ContentValues contentValues = new ContentValues();
-                            String line;
+                            CSVReader reader = new CSVReader(new FileReader(filepath));
+                            String [] nextLine;
                             db.beginTransaction();
                             int count = 0;
-
-                            // insert entries to database
-                            while ((line = buffer.readLine()) != null) {
-                                String[] str = line.split(";", 2);
-                                String name = str[0];
+                            while ((nextLine = reader.readNext()) != null) {
+                                String name = nextLine[0];
                                 String keywords = "";
-                                if(str.length > 1){
-                                    keywords = str[1];
+                                if(nextLine.length > 1){
+                                    keywords = nextLine[1];
                                 }
                                 count++;
 
@@ -185,28 +182,6 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 
     // get filename from path (also remove extension)
     public String getFileName(Uri uri) {

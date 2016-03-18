@@ -434,11 +434,20 @@ public class GameActivity extends Activity {
                     team_names[player % team_count] = data.getStringExtra(GameActivity.TEAM_NAME);
 
                     filtered_words.addAll(filtered_entries);
-                    player++;
-                    if(player == 2*team_count){
+                    final int next_player = player + 1;
+                    if(next_player == 2*team_count){
                         newRound();
                     } else {
-                        callFilterActivity(player);
+                        new AlertDialog.Builder(this)
+                                .setTitle("Next player")
+                                .setMessage("Pass the phone to the next player.")
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .setCancelable(false)
+                                .setPositiveButton("OK, I'm the next player", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        callFilterActivity(next_player);
+                                    }
+                                }).show();
                     }
                 }
                 break;

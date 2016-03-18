@@ -38,38 +38,46 @@ android:orientation="vertical"
 
     </LinearLayout>
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_gravity="center_horizontal">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/scrollView"
+        android:fadeScrollbars="false"
+        android:layout_weight="1">
 
-        <TextView android:text="@string/word"
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/guessedWord"
-            android:layout_marginTop="40dp"
-            android:textSize="40sp"
-            android:textStyle="bold"
-            android:layout_gravity="center_horizontal"
-            android:padding="3dp"
-            android:textAlignment="center"
-            android:gravity="center_horizontal" />
+            android:layout_gravity="center_horizontal">
 
-        <TextView android:text="@string/keywords"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="5dp"
-        android:layout_marginEnd="5dp"
-        android:id="@+id/guessedKeywords"
-            android:textSize="20sp"
-            android:textStyle="italic"
-            android:layout_gravity="center_horizontal"
-            android:padding="3dp"
-            android:textAlignment="center"
-            android:gravity="center_horizontal" />
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/guessedWord"
+                android:layout_marginTop="40dp"
+                android:textSize="40sp"
+                android:textStyle="bold"
+                android:layout_gravity="center_horizontal"
+                android:padding="3dp"
+                android:textAlignment="center"
+                android:gravity="center_horizontal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="5dp"
+                android:layout_marginEnd="5dp"
+                android:id="@+id/guessedKeywords"
+                android:textSize="20sp"
+                android:textStyle="italic"
+                android:layout_gravity="center_horizontal"
+                android:padding="3dp"
+                android:textAlignment="center"
+                android:gravity="center_horizontal" />
+        </LinearLayout>
+
+        </ScrollView>
 
     <LinearLayout
         android:orientation="horizontal"
