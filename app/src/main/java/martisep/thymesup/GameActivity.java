@@ -256,7 +256,7 @@ public class GameActivity extends Activity {
 
     private void endTurn(){
         countDownTimer.cancel(); //should already be stopped, except in the end of the round
-
+/*
         // play alarm and vibrate
         MediaPlayer mPlayer = MediaPlayer.create(getApplicationContext(), R.raw.fifth_short);
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -266,7 +266,7 @@ public class GameActivity extends Activity {
         Vibrator v = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
         long[] pattern = {100,60,110,60,110,60,100, 2000};
         v.vibrate(pattern, -1); // The '-1' here means to vibrate once, as '-1' is out of bounds in the pattern array
-
+*/
         if (remaining_words > 0) {
             new AlertDialog.Builder(this)
                     .setTitle("Discard last word?")
@@ -279,11 +279,15 @@ public class GameActivity extends Activity {
                                 round_words.get(current_index).setState(Entry.EntryState.BURNT);
                                 remaining_words--;
                             }
-                            nextWord(); //TODO next word can be seen by current player
+                            name_text.setVisibility(View.INVISIBLE);
+                            keywords_text.setVisibility(View.INVISIBLE);
+                            nextWord();
                             callSummaryActivity();
                         }})
                     .setPositiveButton("Leave", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
+                            name_text.setVisibility(View.INVISIBLE);
+                            keywords_text.setVisibility(View.INVISIBLE);
                             callSummaryActivity();
                         }})
                     .show();
